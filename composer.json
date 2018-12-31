@@ -1,0 +1,12 @@
+{
+    "name":"triad-ltd/curo-interface",
+    "description":"PSR compliant interface to Curo core platform",
+    "keywords": ["php"],
+    "homepage": "https://github.com/triad-ltd/curo-interface",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "TriadLtd\\CuroInterface\\": "src/"
+        }
+    }
+}
