@@ -51,6 +51,15 @@ class CuroInterface
         }
     }
 
+    public function clearCache($endpoint = null)
+    {
+        if (empty($endpoit)) {
+            $this->session['cache'] = null;
+        } else {
+            $this->session['cache'][$endpoint] = null;
+        }
+    }
+
     public function getClientAccessToken()
     {
         $parameters = [
@@ -74,9 +83,10 @@ class CuroInterface
 
     public function getClientEndpoint($endpoint, $parameters = [])
     {
-        $hash = serialize([$endpoint, $parameters]);
-        if (empty($this->session['cache'][$hash])) {
-            $endpoint = $this->session['api_url'] . $endpoint;
+        $hash = hash('md5', serialize($parameters));
+        $endpoint = $endpoint;
+
+        if (empty($this->session['cache'][$endpoint][$hash])) {
             $parameters = [
                 'headers' => [
                     'Accept' => 'application/json',
@@ -86,15 +96,41 @@ class CuroInterface
             ];
 
             try {
-                $response = $this->httpClient->request('GET', $endpoint, $parameters);
-                $this->session['cache'][$hash] = $response->getBody()->getContents();
+                $response = $this->httpClient->request('GET', $this->session['api_url'] . $endpoint, $parameters);
+                $this->session['cache'][$endpoint][$hash] = $response->getBody()->getContents();
             } catch (\Exception $e) {
                 dump($endpoint);
                 dump($parameters);
                 dump($e->getMessage());
             }
         }
-        return json_decode($this->session['cache'][$hash]);
+
+        return json_decode($this->session['cache'][$endpoint][$hash]);
+    }
+
+    public function postClientEndpoint($endpoint, $parameters = [])
+    {
+        $parameters = [
+            'headers' => [
+                'Accept' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->session['client_access_token'],
+            ],
+            'form_params' => $parameters,
+        ];
+
+        try {
+            $response = $this->httpClient->request(
+                'POST',
+                $this->session['api_url'] . $endpoint,
+                $parameters
+            );
+
+            return true;
+        } catch (\Exception $e) {
+            dump($endpoint);
+            dump($parameters);
+            dump($e->getMessage());
+        }
     }
 
     public function getPasswordToken(string $username, string $password)
