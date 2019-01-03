@@ -108,7 +108,7 @@ class CuroInterface
         return json_decode($this->session['cache'][$endpoint][$hash]);
     }
 
-    public function postClientEndpoint($endpoint, $parameters = [])
+    public function postClientEndpoint(string $endpoint, string $verb = 'POST', array $parameters = [])
     {
         $parameters = [
             'headers' => [
@@ -120,7 +120,7 @@ class CuroInterface
 
         try {
             $response = $this->httpClient->request(
-                'POST',
+                $verb,
                 $this->session['api_url'] . $endpoint,
                 $parameters
             );
@@ -182,6 +182,29 @@ class CuroInterface
 
         try {
             $response = $this->httpClient->request('GET', $endpoint, $parameters);
+            $data = json_decode($response->getBody()->getContents());
+
+            return $data;
+        } catch (\Exception $e) {
+            dump($endpoint);
+            dump($parameters);
+            dump($e->getMessage());
+        }
+    }
+
+    public function postUserEndpoint(string $endpoint, string $verb = 'POST', array $parameters = [])
+    {
+        $endpoint = $this->session['api_url'] . $endpoint;
+        $parameters = [
+            'headers' => [
+                'Accept' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->session['oauth']['access_token'],
+            ],
+            'form_params' => $parameters,
+        ];
+
+        try {
+            $response = $this->httpClient->request($verb, $endpoint, $parameters);
             $data = json_decode($response->getBody()->getContents());
 
             return $data;

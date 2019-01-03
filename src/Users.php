@@ -15,4 +15,10 @@ class Users extends CuroInterface
         $out = $this->getClientEndpoint('/api/users', $parameters);
         return (object) $out;
     }
+
+    public function store(array $parameters = [])
+    {
+        $this->postUserEndpoint('/api/users', 'POST', $parameters);
+        $this->clearCache('/api/users');
+    }
 }
