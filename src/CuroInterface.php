@@ -61,33 +61,40 @@ class CuroInterface
                 'scope' => '',
             ],
         ];
-        $response = $this->httpClient->post($this->session['api_url'] . '/oauth/token', $parameters);
+        try {
+            $response = $this->httpClient->post($this->session['api_url'] . '/oauth/token', $parameters);
+            $data = json_decode((string) $response->getBody(), true);
+            $this->session['client_access_token'] = $data['access_token'];
+        } catch (\Exception $e) {
+            echo ($e->getMessage());
+            die();
+        }
 
-        $data = json_decode((string) $response->getBody(), true);
-        $this->session['client_access_token'] = $data['access_token'];
     }
 
     public function getClientEndpoint($endpoint, $parameters = [])
     {
-        $endpoint = $this->session['api_url'] . $endpoint;
-        $parameters = [
-            'headers' => [
-                'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . $this->session['client_access_token'],
-            ],
-            'query' => $parameters,
-        ];
+        $hash = serialize([$endpoint, $parameters]);
+        if (empty($this->session['cache'][$hash])) {
+            $endpoint = $this->session['api_url'] . $endpoint;
+            $parameters = [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Authorization' => 'Bearer ' . $this->session['client_access_token'],
+                ],
+                'query' => $parameters,
+            ];
 
-        try {
-            $response = $this->httpClient->request('GET', $endpoint, $parameters);
-            $data = json_decode($response->getBody()->getContents());
-
-            return $data;
-        } catch (\Exception $e) {
-            dump($endpoint);
-            dump($parameters);
-            dump($e->getMessage());
+            try {
+                $response = $this->httpClient->request('GET', $endpoint, $parameters);
+                $this->session['cache'][$hash] = $response->getBody()->getContents();
+            } catch (\Exception $e) {
+                dump($endpoint);
+                dump($parameters);
+                dump($e->getMessage());
+            }
         }
+        return json_decode($this->session['cache'][$hash]);
     }
 
     public function getPasswordToken(string $username, string $password)
