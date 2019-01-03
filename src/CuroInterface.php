@@ -119,6 +119,7 @@ class CuroInterface
             $this->session['oauth']['refresh_token'] = $data['refresh_token'];
             $interface = new Users();
             $this->session['user'] = $interface->me();
+
             return true;
         } catch (Exception $e) {
             return false;
@@ -127,6 +128,7 @@ class CuroInterface
 
     public function getUserEndpoint($endpoint, $parameters = [])
     {
+        $endpoint = $this->session['api_url'] . $endpoint;
         $parameters = [
             'headers' => [
                 'Accept' => 'application/json',

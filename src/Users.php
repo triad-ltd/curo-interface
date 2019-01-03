@@ -9,4 +9,10 @@ class Users extends CuroInterface
         $out = $this->getUserEndpoint('/api/users/me');
         return (object) $out;
     }
+
+    public function users(array $parameters = [])
+    {
+        $out = $this->getClientEndpoint('/api/users', $parameters);
+        return (object) $out;
+    }
 }
