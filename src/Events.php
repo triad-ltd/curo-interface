@@ -10,4 +10,9 @@ class Events extends CuroInterface
 
         return (object) $out;
     }
+
+    public function book($parameters)
+    {
+        $this->postClientEndpoint('/api/events/' . $parameters['event_id'] . '/book', 'POST', $parameters);
+    }
 }

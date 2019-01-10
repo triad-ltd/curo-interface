@@ -101,7 +101,7 @@ class CuroInterface
             } catch (\Exception $e) {
                 dump($endpoint);
                 dump($parameters);
-                dump($e->getMessage());
+                dump($e->getResponse()->getBody()->getContents());
             }
         }
 
@@ -129,7 +129,7 @@ class CuroInterface
         } catch (\Exception $e) {
             dump($endpoint);
             dump($parameters);
-            dump($e->getMessage());
+            dump($e->getResponse()->getBody()->getContents());
         }
     }
 
@@ -188,7 +188,7 @@ class CuroInterface
         } catch (\Exception $e) {
             dump($endpoint);
             dump($parameters);
-            dump($e->getMessage());
+            dump($e->getResponse()->getBody()->getContents());
         }
     }
 
@@ -211,7 +211,7 @@ class CuroInterface
         } catch (\Exception $e) {
             dump($endpoint);
             dump($parameters);
-            dump($e->getMessage());
+            dump($e->getResponse()->getBody()->getContents());
         }
     }
 }
