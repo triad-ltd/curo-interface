@@ -60,6 +60,13 @@ class CuroInterface
         }
     }
 
+    public function logoutUser()
+    {
+        $this->session['username'] = null;
+        $this->session['oauth'] = null;
+        $this->session['user'] = null;
+    }
+
     public function getClientAccessToken()
     {
         $parameters = [
@@ -84,7 +91,6 @@ class CuroInterface
     public function getClientEndpoint($endpoint, $parameters = [])
     {
         $hash = hash('md5', serialize($parameters));
-        $endpoint = $endpoint;
 
         if (empty($this->session['cache'][$endpoint][$hash])) {
             $parameters = [
@@ -97,8 +103,11 @@ class CuroInterface
 
             try {
                 $response = $this->httpClient->request('GET', $this->session['api_url'] . $endpoint, $parameters);
+
                 $this->session['cache'][$endpoint][$hash] = $response->getBody()->getContents();
             } catch (\Exception $e) {
+                echo ($e->getMessage());
+                die();
                 dump($endpoint);
                 dump($parameters);
                 dump($e->getResponse()->getBody()->getContents());
@@ -135,6 +144,7 @@ class CuroInterface
 
     public function getPasswordToken(string $username, string $password)
     {
+        // used when performing login.
         $parameters = [
             'form_params' => [
                 'grant_type' => 'password',
@@ -171,25 +181,32 @@ class CuroInterface
 
     public function getUserEndpoint($endpoint, $parameters = [])
     {
-        $endpoint = $this->session['api_url'] . $endpoint;
-        $parameters = [
-            'headers' => [
-                'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . $this->session['oauth']['access_token'],
-            ],
-            'query' => $parameters,
-        ];
+        $hash = hash('md5', serialize($parameters));
+        // dd($parameters);
+        // unset()
 
-        try {
-            $response = $this->httpClient->request('GET', $endpoint, $parameters);
-            $data = json_decode($response->getBody()->getContents());
+        // sure, but how do we ensure that the session is destroyed?
 
-            return $data;
-        } catch (\Exception $e) {
-            dump($endpoint);
-            dump($parameters);
-            dump($e->getResponse()->getBody()->getContents());
+        if (empty($this->session['cache'][$endpoint][$hash])) {
+            $parameters = [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Authorization' => 'Bearer ' . $this->session['oauth']['access_token'],
+                ],
+                'query' => $parameters,
+            ];
+
+            try {
+                $response = $this->httpClient->request('GET', $this->session['api_url'] . $endpoint, $parameters);
+                $this->session['cache'][$endpoint][$hash] = $response->getBody()->getContents();
+            } catch (\Exception $e) {
+                dump($endpoint);
+                dump($parameters);
+                dump($e->getResponse()->getBody()->getContents());
+            }
         }
+
+        return json_decode($this->session['cache'][$endpoint][$hash]);
     }
 
     public function postUserEndpoint(string $endpoint, string $verb = 'POST', array $parameters = [])

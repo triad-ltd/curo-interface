@@ -27,4 +27,11 @@ class Taxonomies extends CuroInterface
 
         return true;
     }
+
+    public function checkExistence($taxonomy_id, $parent_id, $child_id)
+    {
+        $out = $this->getClientEndpoint('/api/taxonomy_exists', ['taxonomy_id' => $taxonomy_id, 'parent_id' => $parent_id, 'child_id' => $child_id]);
+
+        return (int) $out;
+    }
 }
