@@ -8,5 +8,8 @@
         "psr-4": {
             "TriadLtd\\CuroInterface\\": "src/"
         }
+    },
+    "require": {
+        "guzzlehttp/guzzle": "^6.5"
     }
 }
