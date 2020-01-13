@@ -10,6 +10,7 @@ class CuroInterface
     private $api_client_id;
     private $api_client_Secret;
     private $session;
+    private $cache_enabled = true;
 
     /**
      * Curo Interface Class
@@ -33,6 +34,10 @@ class CuroInterface
             $this->session['api_url'] = $params['api_url'];
             $this->session['api_client_id'] = $params['client_id'];
             $this->session['api_client_secret'] = $params['client_secret'];
+
+            if (isset($params['cache_enabled']) && $params['cache_enabled'] == false) {
+                $this->cache_enabled = false;
+            }
         }
 
         $this->httpClient = new Client;
@@ -92,17 +97,17 @@ class CuroInterface
     {
         $hash = hash('md5', serialize($parameters));
 
-        if (empty($this->session['cache'][$endpoint][$hash])) {
+        if (!$this->cache_enabled || empty($this->session['cache'][$endpoint][$hash])) {
             $parameters = [
                 'headers' => [
                     'Accept' => 'application/json',
-                    'Authorization' => 'Bearer ' . $this->session['client_access_token'],
+                    'Authorization' => $this->session['client_access_token'],
                 ],
                 'query' => $parameters,
             ];
-
             try {
-                $response = $this->httpClient->request('GET', $this->session['api_url'] . $endpoint, $parameters);
+                $request_url = $this->session['api_url'] . $endpoint;
+                $response = $this->httpClient->request('GET', $request_url, $parameters);
 
                 $this->session['cache'][$endpoint][$hash] = $response->getBody()->getContents();
             } catch (\Exception $e) {
@@ -182,12 +187,8 @@ class CuroInterface
     public function getUserEndpoint($endpoint, $parameters = [])
     {
         $hash = hash('md5', serialize($parameters));
-        // dd($parameters);
-        // unset()
 
-        // sure, but how do we ensure that the session is destroyed?
-
-        if (empty($this->session['cache'][$endpoint][$hash])) {
+        if (!$this->cache_enabled || empty($this->session['cache'][$endpoint][$hash])) {
             $parameters = [
                 'headers' => [
                     'Accept' => 'application/json',
