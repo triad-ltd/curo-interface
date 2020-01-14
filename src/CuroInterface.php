@@ -83,7 +83,7 @@ class CuroInterface
             ],
         ];
         try {
-            $response = $this->httpClient->post($this->session['api_url'] . '/oauth/token', $parameters);
+            $response = $this->httpClient->post($this->session['api_url'] . '/api/v1/oauth/token', $parameters);
             $data = json_decode((string) $response->getBody(), true);
             $this->session['client_access_token'] = $data['access_token'];
         } catch (\Exception $e) {
@@ -164,7 +164,7 @@ class CuroInterface
         try {
             $response = $this->httpClient->request(
                 'POST',
-                $this->session['api_url'] . '/oauth/token',
+                $this->session['api_url'] . '/api/v1/oauth/token',
                 $parameters
             );
 
