@@ -90,7 +90,6 @@ class CuroInterface
             echo ($e->getMessage());
             die();
         }
-
     }
 
     public function getClientEndpoint($endpoint, $parameters = [])
