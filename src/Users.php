@@ -33,7 +33,7 @@ class Users extends CuroInterface
 
     public function store(array $parameters = [])
     {
-        $this->postUserEndpoint('/api/v1/users', 'POST', $parameters);
+        $this->postClientEndpoint('/api/v1/users', 'POST', $parameters);
         $this->clearCache('/api/v1/users');
     }
 
