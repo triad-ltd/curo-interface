@@ -104,6 +104,7 @@ class CuroInterface
                 ],
                 'query' => $parameters,
             ];
+
             try {
                 $request_url = $this->session['api_url'] . $endpoint;
                 $response = $this->httpClient->request('GET', $request_url, $parameters);
