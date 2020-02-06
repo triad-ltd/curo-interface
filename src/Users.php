@@ -31,9 +31,9 @@ class Users extends CuroInterface
         return (object) $out;
     }
 
-    public function store(array $parameters = [])
+    public function store(string $account_uuid, array $parameters = [])
     {
-        $this->postClientEndpoint('/api/v1/users', 'POST', $parameters);
+        $this->postClientEndpoint('/api/v1/accounts/' . $account_uuid . '/users', 'POST', $parameters);
         $this->clearCache('/api/v1/users');
     }
 
