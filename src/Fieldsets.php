@@ -7,18 +7,18 @@ trait Fieldsets
 
     public function registerFieldsets($labels)
     {
-        $this->fieldsets = $labels; 
+        $this->fieldsets = $labels;
 
         if (isset($this->session['fieldsets']) && count($this->session['fieldsets'])) return $this;
         $this->session['fieldsets'] = [];
-     
+
         foreach ($this->session['chambers'] as $chamber => $accessToken) {
             $this->session['fieldsets'][$chamber] = $this->getAvailableFieldsets($accessToken, array_Keys($labels));
-        } 
+        }
 
         foreach ($this->session['fieldsets'] as $chamber => $fieldsets) {
             $accessToken = $this->session['chambers'][$chamber];
-            $params = $this->getParams($accessToken); 
+            $params = $this->getParams($accessToken);
             $this->getFields($chamber, $fieldsets, $params);
         }
     }
@@ -28,7 +28,7 @@ trait Fieldsets
         $body = [];
         $result = [];
         $url = $this->url . '/fieldsets/';
-        $params = $this->getParams($accessToken); 
+        $params = $this->getParams($accessToken);
 
         $response = $this->httpClient->request('GET', $url, $params);
 
@@ -49,7 +49,7 @@ trait Fieldsets
                 ];
             }
         }
-      
+
         return $result;
     }
 
@@ -64,7 +64,7 @@ trait Fieldsets
                 $body = json_decode((string) $response->getBody()->getContents() , true);
             } catch (\Exception $e) {
                 echo ($e->getMessage());
-                continue; 
+                continue;
             }
 
             if ($body['fields']) {

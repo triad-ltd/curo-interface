@@ -16,13 +16,13 @@ class Integration
         $this->session = &$session;
         $this->httpClient = new Client;
         $this->url = $params['api_url'];
-    } 
+    }
 
     public function store($adapter)
     {
         $this->initAdapter($adapter);
         $adapter->store();
-    } 
+    }
 
     public function destroy($adapter)
     {

@@ -34,7 +34,7 @@ trait Auth
         $body = [];
 
         $url = $this->url . '/clients/chambers-users';
-        $params = $this->getParams($accessToken); 
+        $params = $this->getParams($accessToken);
 
         $response = $this->httpClient->request('GET', $url, $params);
 
@@ -60,7 +60,6 @@ trait Auth
 
         return $credentials;
     }
-  
 
     private function authenticateChamber($id, $secret)
     {

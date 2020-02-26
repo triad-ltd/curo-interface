@@ -4,15 +4,15 @@ use GuzzleHttp\Client;
 
 abstract class InterfaceCRUD
 {
-    protected $session; 
+    protected $session;
     protected $chambers;
     protected $fieldsets;
     protected $url;
-    protected $val; 
+    protected $val;
 
     public function __construct($val)
     {
-        $this->val = $val; 
+        $this->val = $val;
         $this->httpClient = new Client;
     }
 
@@ -23,7 +23,7 @@ abstract class InterfaceCRUD
     public function setSession(&$session)
     {
         $this->session = &$session;
-    } 
+    }
 
     public function setChambers($chambers)
     {
@@ -66,7 +66,7 @@ abstract class InterfaceCRUD
             return json_decode($response->getBody()->getContents(), true);
         } catch (\Exception $e) {
             return [
-                'error' => $e->getMessage(), 'success' => false, 
+                'error' => $e->getMessage(), 'success' => false,
                 // 'conent' => $e->getResponse()->getBody()->getContents(),
                 'request' => [$endpoint, $parameters]
             ];
@@ -78,7 +78,7 @@ abstract class InterfaceCRUD
         $result = [];
         if (!isset($this->session['fieldsets'][$chamber])) return $result;
         if (!isset($this->session['fieldsets'][$chamber][$schemaName])) return $result;
-  
+
         $fieldsetID = $this->session['fieldsets'][$chamber][$schemaName]['id'];
 
         $in  = str_repeat('?,', count($list) - 1) . '?';
@@ -86,7 +86,7 @@ abstract class InterfaceCRUD
         $query = ee()->db->query($sql, $list);
 
         foreach($query->result_array() as $row) {
-            $r = $this->curl($chamber, "/categories?fieldset_id={$fieldsetID}&ref_id={$row['cat_id']}", 'GET'); 
+            $r = $this->curl($chamber, "/categories?fieldset_id={$fieldsetID}&ref_id={$row['cat_id']}", 'GET');
             if (count($r) === 1 && !isset($r['error'])) $result[] = $r[0];
         }
 
