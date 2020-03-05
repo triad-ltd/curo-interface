@@ -104,10 +104,10 @@ class Channel extends InterfaceCRUD
     public function store()
     {
         $schema = $this->locateChannelSchema();
-        if (count($schema) === 0) return;
+        if (count($schema) === 0) { echo "Missing schema... " . $this->val['entry_id'] . " V"; return; }
 
         $chambers = $this->locateChambers($schema);
-        if (count($chambers) === 0) return;
+        if (count($chambers) === 0) { echo "Missing chamber... " . $this->val['entry_id'] . " V";  return; }
 
         foreach ($this->session['fieldsets'] as $chamber => $fieldsets) {
             if (!in_array($chamber, $chambers)) continue;
@@ -115,9 +115,10 @@ class Channel extends InterfaceCRUD
 
             $form = [];
             $this->renderForm($form, $fieldsets[$this->selectedFieldset]['fields'], $schema);
-            if (!isset($form['ref_id'])) continue;
+            if (!isset($form['ref_id'])) { echo "Missing ref_id...  >"; continue; }
 
             $member = $this->locatoteMember($chamber, $schema, $form);
+            if (!count($member)) { echo "\n Missing member ... " . $this->val['entry_id'] . "  >"; continue; }
             if (isset($form['content'])) $form['content'] = ee()->typography->parse_file_paths($form['content']);
             if (isset($form['icon_url'])) $form['icon_url'] =  ee()->typography->parse_file_paths($form['icon_url']);
             if (isset($form['date'])) $form['date'] = date('Y-m-d G:i:s', $form['date']);
@@ -138,7 +139,6 @@ class Channel extends InterfaceCRUD
 
             $controller = $this->actions[$this->selectedFieldset];
             $r = $this->curl($chamber, "/{$controller}?fieldset={$fieldsetUUID}&ref_id={$form['ref_id']}", 'GET');
-            print_r($r);
             if (isset($r['error']) && $r['error']) { print_r($r); continue; }
             if (count($r['data']) > 1) continue; //ambiguous, silently skipped
             if (count($r['data']) == 0) {
@@ -147,17 +147,15 @@ class Channel extends InterfaceCRUD
                 if ($controller === 'events') $form['label'] = $form['title'];
                 if ($controller === 'events' && count($form['member'])) $form['author_id'] = $member['id'];
                 $save = $this->curl($chamber, "/{$controller}", 'POST', $form);
+                echo "\n Save: .. " . $this->val['channel_id'] . " : " . $this->val['entry_id'] . " : " . $form['title'];
             } else {
                 if ($controller === 'content') $form['body'] = $form['title'];
                 if ($controller === 'events') $form['label'] = $form['title'];
                 if ($controller === 'events' && count($form['member'])) $form['author_id'] = $member['id'];
                 $update = $this->curl($chamber, "/{$controller}/{$r['data'][0]['uuid']}", 'PUT', $form);
+                echo "\n Upda: .. " . $this->val['channel_id'] . " : " . $this->val['entry_id'] . " : " . $form['title'];
             }
         }
-
-        echo "<pre>";
-        print_r($form);
-        die(' -- store M2M  -- ');
     }
 
     public function destroy()
@@ -235,9 +233,12 @@ class Channel extends InterfaceCRUD
         $r = $this->curl($chamber, "/accounts?fieldset={$fieldsetUUID}&ref_id={$this->val['author_id']}", 'GET');
         if (isset($r['error']) && $r['error']) { print_r($r); return; }
         if (count($r['data']) > 1) return; //ambiguous, silently skipped
-        if (isset($r['data'][0])) $form['member'] = ['uuid' => $r['data'][0]['uuid']];
+        if (isset($r['data'][0])) {
+            $form['member'] = ['uuid' => $r['data'][0]['uuid']];
+            return $r['data'][0];
+        }
 
-        return $r['data'][0];
+        return [];
     }
 }
 
