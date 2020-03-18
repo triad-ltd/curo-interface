@@ -41,7 +41,7 @@ class Member extends InterfaceCRUD
 
             $form = [];
             $this->renderForm($form, $fieldset[$fieldsetName]['fields'], $schema);
-            
+
             if (!isset($form['category'])) continue;
             if (!isset($form['ref_id'])) continue;
             if (isset($form['logo']) && $form['logo']) $form['logo'] = ee()->config->item('avatar_url') . $form['logo'];
@@ -66,10 +66,10 @@ class Member extends InterfaceCRUD
             if (count($r['data']) == 0) {
                 $form['fieldset_id'] = $fieldset[$fieldsetName]['uuid'];
                 $this->curl($chamber, "/accounts", 'POST', $form);
-                echo "\n Saved ..." . $form['ref_id'];
+                // echo "\n Saved ..." . $form['ref_id'];
             } else {
                 $this->curl($chamber, "/accounts/{$r['data'][0]['uuid']}", 'PUT', $form);
-                echo "\n Updated ..." . $form['ref_id'];
+                // echo "\n Updated ..." . $form['ref_id'];
             }
         }
         // die();
