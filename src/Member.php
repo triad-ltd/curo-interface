@@ -38,29 +38,33 @@ class Member extends InterfaceCRUD
         if (!count($group)) return;
         foreach ($this->session['fieldsets'] as $chamber => $fieldset) {
             if (!isset($fieldset[$fieldsetName])) continue;
+            // debug
+            // if ($chamber != 'NN') continue;
 
             $form = [];
             $this->renderForm($form, $fieldset[$fieldsetName]['fields'], $schema);
-            
-            if (!isset($form['category'])) continue;
-            if (!isset($form['ref_id'])) continue;
+
+            if (!isset($form['category'])) { echo $this->val['screen_name']; echo " NoCat \n"; continue; }
+            if (!isset($form['ref_id'])) { echo $this->val['screen_name']; echo " NoRef \n";  continue; }
             if (isset($form['logo']) && $form['logo']) $form['logo'] = ee()->config->item('avatar_url') . $form['logo'];
 
             $fieldsetUUID = $fieldset[$fieldsetName]['uuid'];
 
             $r = $this->curl($chamber, "/accounts?fieldset={$fieldsetUUID}&ref_id={$form['ref_id']}", 'GET');
             if (isset($r['error']) && $r['error']) { print_r($r); continue; }
-            if (count($r['data']) > 1) continue; //ambiguous, silently skipped
+            if (count($r['data']) > 1) { echo $this->val['screen_name']; echo " " . count($r['data']);  echo " NoMany \n"; continue; } //ambiguous, silently skipped
 
             $form['category'] = $this->getCategories($chamber, 'categories', explode(',', $form['category']));
 
             if (count($r['data']) == 1 && !in_array($chamber, $chambers)) {
                 $this->curl($chamber, "/accounts/{$r['data'][0]['uuid']}", 'DELETE');
+                echo $this->val['screen_name']; echo "NoLive";
                 continue;
             }
             if (!in_array($group['group_title'],  ['Members', 'Super Admin'])) {
                 // print('delete non member');
                 if (count($r['data'])) $this->curl($chamber, "/accounts/{$r['data'][0]['uuid']}", 'DELETE');
+                echo $this->val['screen_name']; echo " NoMemb-" . $group['group_title'];
                 continue;
             }
             if (count($r['data']) == 0) {
