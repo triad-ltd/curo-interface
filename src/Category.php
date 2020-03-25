@@ -26,10 +26,16 @@ class Category extends InterfaceCRUD
         foreach ($this->session['fieldsets'] as $chamber => $fieldset) {
             if (!isset($fieldset['categories'])) continue;
 
+            // debug
+            // if ($chamber != 'NN') continue;
+
             $form = ['label' => $this->val['cat_name']];
             $this->renderForm($form, $fieldset['categories']['fields'], $schema);
 
-            if (!isset($form['ref_id'])) continue;
+            if (!isset($form['ref_id'])) {
+                continue;
+            }
+
 
             $fieldsetID = $fieldset['categories']['id'];
             $r = $this->curl($chamber, "/categories?fieldset_id={$fieldsetID}&ref_id={$form['ref_id']}", 'GET');
@@ -39,9 +45,13 @@ class Category extends InterfaceCRUD
 
             if (count($r) == 0) {
                 $form['fieldset_id'] = $fieldset['categories']['uuid'];
-                $this->curl($chamber, "/categories", 'POST', $form);
+                $s = $this->curl($chamber, "/categories", 'POST', $form);
+                if (isset($s['error']))
+                    echo "\nSave:  {$s['error']}\n";
             } else {
-                $this->curl($chamber, "/categories/{$r[0]['uuid']}", 'PUT', $form);
+                $u = $this->curl($chamber, "/categories/{$r[0]['uuid']}", 'PUT', $form);
+                if (isset($u['error']))
+                    echo "\nUpdate:  {$u['error']}\n";
             }
         }
     }

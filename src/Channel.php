@@ -104,21 +104,29 @@ class Channel extends InterfaceCRUD
     public function store()
     {
         $schema = $this->locateChannelSchema();
-        if (count($schema) === 0) { echo "Missing schema... " . $this->val['entry_id'] . " V"; return; }
+        if (count($schema) === 0) {
+            echo "Missing schema... " . $this->val['entry_id'] . " V"; return;
+        }
 
         $chambers = $this->locateChambers($schema);
-        if (count($chambers) === 0) { echo "Missing chamber... " . $this->val['entry_id'] . " V";  return; }
+        if (count($chambers) === 0) {
+            echo "Missing chamber... " . $this->val['entry_id'] . " V";  return;
+        }
 
         foreach ($this->session['fieldsets'] as $chamber => $fieldsets) {
-            if (!in_array($chamber, $chambers)) continue;
-            if (!isset($fieldsets[$this->selectedFieldset])) continue;
+            if (!in_array($chamber, $chambers)) {
+                continue;
+            }
+            if (!isset($fieldsets[$this->selectedFieldset])) {
+                continue;
+            }
 
             $form = [];
             $this->renderForm($form, $fieldsets[$this->selectedFieldset]['fields'], $schema);
             if (!isset($form['ref_id'])) { echo "Missing ref_id...  >"; continue; }
 
             $member = $this->locatoteMember($chamber, $schema, $form);
-            if (!count($member)) { echo "\n Missing member ... " . $this->val['entry_id'] . "  >"; continue; }
+            if (!count($member)) { echo "\n Missing member ... " . $this->val['entry_id'] . "| " . $form['title'] . "  >"; continue; }
             if (isset($form['content'])) $form['content'] = ee()->typography->parse_file_paths($form['content']);
             if (isset($form['icon_url'])) $form['icon_url'] =  ee()->typography->parse_file_paths($form['icon_url']);
             if (isset($form['date'])) $form['date'] = date('Y-m-d G:i:s', $form['date']);
@@ -126,7 +134,7 @@ class Channel extends InterfaceCRUD
             if (isset($this->paths[$this->selectedFieldset])) {
                 $paths = $this->paths[$this->selectedFieldset];
                 $form['book_now_url'] = $paths['book_now_url'] . $form['book_now_url'];
-                if ($this->val[$paths['isCancel']] === 'true') {
+                if (isset($paths['isCancel']) && $this->val[$paths['isCancel']] === 'true') {
                     return $this->destroy();
                 }
             }
@@ -140,7 +148,7 @@ class Channel extends InterfaceCRUD
             $controller = $this->actions[$this->selectedFieldset];
             $r = $this->curl($chamber, "/{$controller}?fieldset={$fieldsetUUID}&ref_id={$form['ref_id']}", 'GET');
             if (isset($r['error']) && $r['error']) { print_r($r); continue; }
-            if (count($r['data']) > 1) continue; //ambiguous, silently skipped
+            if (count($r['data']) > 1) { echo " NoMany \n"; continue; } //ambiguous, silently skipped
             if (count($r['data']) == 0) {
                 $form['fieldset_id'] = $fieldsets[$this->selectedFieldset]['id'];
                 if ($controller === 'content') $form['body'] = $form['title'];
@@ -153,6 +161,7 @@ class Channel extends InterfaceCRUD
                 if ($controller === 'events') $form['label'] = $form['title'];
                 if ($controller === 'events' && count($form['member'])) $form['author_id'] = $member['id'];
                 $update = $this->curl($chamber, "/{$controller}/{$r['data'][0]['uuid']}", 'PUT', $form);
+                if (isset($update['error'])) print_r($update['error']);
                 echo "\n Upda: .. " . $this->val['channel_id'] . " : " . $this->val['entry_id'] . " : " . $form['title'];
             }
         }
@@ -161,10 +170,14 @@ class Channel extends InterfaceCRUD
     public function destroy()
     {
         $schema = $this->locateChannelSchema();
-        if (count($schema) === 0) return;
+        if (count($schema) === 0) {
+            return;
+        }
 
         foreach ($this->session['fieldsets'] as $chamber => $fieldsets) {
-            if (!isset($fieldsets[$this->selectedFieldset])) continue;
+            if (!isset($fieldsets[$this->selectedFieldset])) {
+                continue;
+            }
 
             $form = [];
             $this->renderForm($form, $fieldsets[$this->selectedFieldset]['fields'], $schema);
@@ -173,8 +186,13 @@ class Channel extends InterfaceCRUD
             $controller = $this->actions[$this->selectedFieldset];
 
             $r = $this->curl($chamber, "/{$controller}?fieldset={$fieldsetUUID}&ref_id={$form['ref_id']}", 'GET');
-            if (isset($r['error']) && $r['error']) { print_r($r); continue; }
-            if (count($r['data']) > 1 || count($r['data']) == 0) continue; //ambiguous, silently skipped
+            if (isset($r['error']) && $r['error']) {
+                print_r($r);
+                continue;
+            }
+            if (count($r['data']) > 1 || count($r['data']) == 0) {
+                continue; //ambiguous, silently skipped
+            }
 
             $this->curl($chamber, "/{$controller}/{$r['data'][0]['uuid']}", 'DELETE');
         }
@@ -201,11 +219,17 @@ class Channel extends InterfaceCRUD
     {
         $chambers = [];
 
-        if (!isset($schema['category'])) return $chambers;
-        if (!isset($this->val[$schema['category']])) return $chambers;
+        if (!isset($schema['category'])) {
+            return $chambers;
+        }
+        if (!isset($this->val[$schema['category']])) {
+            return $chambers;
+        }
 
         $list = explode('|', $this->val[$schema['category']]);
-        if (count($list) === 0) return $chambers;
+        if (count($list) === 0) {
+            return $chambers;
+        }
 
         $in  = str_repeat('?,', count($list) - 1) . '?';
         $sql = "SELECT cat_url_title FROM `exp_categories` where cat_id in ({$in})";
@@ -223,16 +247,41 @@ class Channel extends InterfaceCRUD
 
     protected function locatoteMember($chamber, $schema, &$form)
     {
+        if (!isset($this->session['acmem'])) {
+            $this->session['acmem'] = [];
+        }
+
         $fieldsetName = 'members';
-        if (!isset($form['member'])) return;
-        if (!isset($this->session['fieldsets'][$chamber][$fieldsetName])) return;
+        if (!isset($form['member'])) {
+            return;
+        }
+        if (!isset($this->session['fieldsets'][$chamber][$fieldsetName])) {
+            return;
+        }
         $fieldset =  $this->session['fieldsets'][$chamber][$fieldsetName];
         $fieldsetUUID = $fieldset['uuid'];
         $form['member'] = [];
 
-        $r = $this->curl($chamber, "/accounts?fieldset={$fieldsetUUID}&ref_id={$this->val['author_id']}", 'GET');
-        if (isset($r['error']) && $r['error']) { print_r($r); return; }
-        if (count($r['data']) > 1) return; //ambiguous, silently skipped
+        $key = "{$fieldsetUUID}&{$this->val['author_id']}";
+        if (!isset($this->session['acmem'][$key])) {
+            $this->session['acmem'][$key] = [];
+        }
+
+        if (count($this->session['acmem'][$key])) {
+            $r = $this->session['acmem'][$key];
+            echo " Cached: $key \n";
+        } else {
+            $r = $this->curl($chamber, "/accounts?fieldset={$fieldsetUUID}&ref_id={$this->val['author_id']}", 'GET');
+            $this->session['acmem'][$key] = $r;
+        }
+
+        if (isset($r['error']) && $r['error']) {
+            print_r($r);
+            return [];
+        }
+        if (count($r['data']) > 1) {
+            return []; //ambiguous, silently skipped
+        }
         if (isset($r['data'][0])) {
             $form['member'] = ['uuid' => $r['data'][0]['uuid']];
             return $r['data'][0];
