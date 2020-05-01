@@ -19,8 +19,6 @@ class CuroInterface
      */
     public function __construct(array $params = null)
     {
-        $this->session = &$_SESSION['curo'];
-
         if (!empty($params)) {
             if (empty($params['api_url'])) {
                 die('Curo api url required');
@@ -31,6 +29,7 @@ class CuroInterface
             if (empty($params['client_secret'])) {
                 die('Curo client secret required');
             }
+            $this->session = &$_SESSION['curo'][$params['client_id']];
             $this->session['api_url'] = $params['api_url'];
             $this->session['api_client_id'] = $params['client_id'];
             $this->session['api_client_secret'] = $params['client_secret'];
@@ -113,9 +112,9 @@ class CuroInterface
             } catch (\Exception $e) {
                 echo ($e->getMessage());
                 die();
-                dump($endpoint);
-                dump($parameters);
-                dump($e->getResponse()->getBody()->getContents());
+                var_dump($endpoint);
+                var_dump($parameters);
+                var_dump($e->getResponse()->getBody()->getContents());
             }
         }
 
@@ -141,9 +140,9 @@ class CuroInterface
 
             return true;
         } catch (\Exception $e) {
-            dump($endpoint);
-            dump($parameters);
-            dump($e->getResponse()->getBody()->getContents());
+            var_dump($endpoint);
+            var_dump($parameters);
+            var_dump($e->getResponse()->getBody()->getContents());
         }
     }
 
@@ -201,9 +200,9 @@ class CuroInterface
                 $response = $this->httpClient->request('GET', $this->session['api_url'] . $endpoint, $parameters);
                 $this->session['cache'][$endpoint][$hash] = $response->getBody()->getContents();
             } catch (\Exception $e) {
-                dump($endpoint);
-                dump($parameters);
-                dump($e->getResponse()->getBody()->getContents());
+                var_dump($endpoint);
+                var_dump($parameters);
+                var_dump($e->getResponse()->getBody()->getContents());
             }
         }
 
@@ -227,9 +226,9 @@ class CuroInterface
 
             return $data;
         } catch (\Exception $e) {
-            dump($endpoint);
-            dump($parameters);
-            dump($e->getResponse()->getBody()->getContents());
+            var_dump($endpoint);
+            var_dump($parameters);
+            var_dump($e->getResponse()->getBody()->getContents());
         }
     }
 }
