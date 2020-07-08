@@ -29,9 +29,9 @@ class CuroInterface
             if (empty($params['client_secret'])) {
                 die('Curo client secret required');
             }
-            $this->session = &$_SESSION['curo'][$params['client_id']];
-            $this->session['api_url'] = $params['api_url'];
-            $this->session['api_client_id'] = $params['client_id'];
+            $this->session                      = &$_SESSION['curo'][$params['client_id']];
+            $this->session['api_url']           = $params['api_url'];
+            $this->session['api_client_id']     = $params['client_id'];
             $this->session['api_client_secret'] = $params['client_secret'];
 
             if (isset($params['cache_enabled']) && $params['cache_enabled'] == false) {
@@ -67,23 +67,23 @@ class CuroInterface
     public function logoutUser()
     {
         $this->session['username'] = null;
-        $this->session['oauth'] = null;
-        $this->session['user'] = null;
+        $this->session['oauth']    = null;
+        $this->session['user']     = null;
     }
 
     public function getClientAccessToken()
     {
         $parameters = [
             'form_params' => [
-                'grant_type' => 'client_credentials',
-                'client_id' => $this->session['api_client_id'],
+                'grant_type'    => 'client_credentials',
+                'client_id'     => $this->session['api_client_id'],
                 'client_secret' => $this->session['api_client_secret'],
-                'scope' => '',
+                'scope'         => '',
             ],
         ];
         try {
-            $response = $this->httpClient->post($this->session['api_url'] . '/api/v1/oauth/token', $parameters);
-            $data = json_decode((string) $response->getBody(), true);
+            $response                             = $this->httpClient->post($this->session['api_url'] . '/api/v1/oauth/token', $parameters);
+            $data                                 = json_decode((string) $response->getBody(), true);
             $this->session['client_access_token'] = $data['access_token'];
         } catch (\Exception $e) {
             echo ($e->getMessage());
@@ -98,15 +98,15 @@ class CuroInterface
         if (!$this->cache_enabled || empty($this->session['cache'][$endpoint][$hash])) {
             $parameters = [
                 'headers' => [
-                    'Accept' => 'application/json',
-                    'Authorization' => $this->session['client_access_token'],
+                    'Accept'        => 'application/json',
+                    'Authorization' => 'Bearer ' . $this->session['client_access_token'],
                 ],
-                'query' => $parameters,
+                'query'   => $parameters,
             ];
 
             try {
                 $request_url = $this->session['api_url'] . $endpoint;
-                $response = $this->httpClient->request('GET', $request_url, $parameters);
+                $response    = $this->httpClient->request('GET', $request_url, $parameters);
 
                 $this->session['cache'][$endpoint][$hash] = $response->getBody()->getContents();
             } catch (\Exception $e) {
@@ -124,8 +124,8 @@ class CuroInterface
     public function postClientEndpoint(string $endpoint, string $verb = 'POST', array $parameters = [])
     {
         $parameters = [
-            'headers' => [
-                'Accept' => 'application/json',
+            'headers'     => [
+                'Accept'        => 'application/json',
                 'Authorization' => 'Bearer ' . $this->session['client_access_token'],
             ],
             'form_params' => $parameters,
@@ -151,12 +151,12 @@ class CuroInterface
         // used when performing login.
         $parameters = [
             'form_params' => [
-                'grant_type' => 'password',
-                'client_id' => $this->session['api_client_id'],
+                'grant_type'    => 'password',
+                'client_id'     => $this->session['api_client_id'],
                 'client_secret' => $this->session['api_client_secret'],
-                'username' => $username,
-                'password' => $password,
-                'scope' => '',
+                'username'      => $username,
+                'password'      => $password,
+                'scope'         => '',
             ],
         ];
 
@@ -169,13 +169,13 @@ class CuroInterface
 
             $data = json_decode((string) $response->getBody(), true);
 
-            $this->session['username'] = $username;
-            $this->session['oauth']['token_type'] = $data['token_type'];
-            $this->session['oauth']['expires_in'] = $data['expires_in'];
-            $this->session['oauth']['access_token'] = $data['access_token'];
+            $this->session['username']               = $username;
+            $this->session['oauth']['token_type']    = $data['token_type'];
+            $this->session['oauth']['expires_in']    = $data['expires_in'];
+            $this->session['oauth']['access_token']  = $data['access_token'];
             $this->session['oauth']['refresh_token'] = $data['refresh_token'];
-            $interface = new Users();
-            $this->session['user'] = $interface->me();
+            $interface                               = new Users();
+            $this->session['user']                   = $interface->me();
 
             return true;
         } catch (Exception $e) {
@@ -190,14 +190,14 @@ class CuroInterface
         if (!$this->cache_enabled || empty($this->session['cache'][$endpoint][$hash])) {
             $parameters = [
                 'headers' => [
-                    'Accept' => 'application/json',
+                    'Accept'        => 'application/json',
                     'Authorization' => 'Bearer ' . $this->session['oauth']['access_token'],
                 ],
-                'query' => $parameters,
+                'query'   => $parameters,
             ];
 
             try {
-                $response = $this->httpClient->request('GET', $this->session['api_url'] . $endpoint, $parameters);
+                $response                                 = $this->httpClient->request('GET', $this->session['api_url'] . $endpoint, $parameters);
                 $this->session['cache'][$endpoint][$hash] = $response->getBody()->getContents();
             } catch (\Exception $e) {
                 var_dump($endpoint);
@@ -211,10 +211,10 @@ class CuroInterface
 
     public function postUserEndpoint(string $endpoint, string $verb = 'POST', array $parameters = [])
     {
-        $endpoint = $this->session['api_url'] . $endpoint;
+        $endpoint   = $this->session['api_url'] . $endpoint;
         $parameters = [
-            'headers' => [
-                'Accept' => 'application/json',
+            'headers'     => [
+                'Accept'        => 'application/json',
                 'Authorization' => 'Bearer ' . $this->session['oauth']['access_token'],
             ],
             'form_params' => $parameters,
@@ -222,7 +222,7 @@ class CuroInterface
 
         try {
             $response = $this->httpClient->request($verb, $endpoint, $parameters);
-            $data = json_decode($response->getBody()->getContents());
+            $data     = json_decode($response->getBody()->getContents());
 
             return $data;
         } catch (\Exception $e) {
